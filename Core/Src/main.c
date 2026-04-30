@@ -97,7 +97,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
   OLED_Init();
   OLED_ShowString(1, 1, "Hello");
-  
+  OLED_ShowChinese(2, 1, 0); // 显示"你"
+  OLED_ShowChinese(2, 2, 1); // 显示"好"
+  OLED_ShowChinese(2, 3, 2); // 显示"世"
+  OLED_ShowChinese(2, 4, 3); // 显示"界"
   
   /* USER CODE END 2 */
 
