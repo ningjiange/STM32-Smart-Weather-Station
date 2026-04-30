@@ -22,6 +22,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "oled.h"
+#include "oled_font.h"
+#include "delay.h"
 // 每次生成代码就在终端运行一次
 // 每次生成代码就在终端运行一次
 // 每次生成代码就在终端运行一次
@@ -95,12 +98,14 @@ int main(void)
   OLED_Init();
   OLED_ShowString(1, 1, "Hello");
   
-   
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-      while (1) {
+  while (1) {
+
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
