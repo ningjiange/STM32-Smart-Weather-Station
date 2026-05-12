@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
+#include "cmsis_os2.h"
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
@@ -28,6 +29,7 @@
 #include "oled.h"
 #include "string.h"
 #include "usart.h"
+#include <stdint.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +49,12 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-volatile uint8_t defaultTaskAlive = 1; // 初始状态：存在
+/* volatile uint8_t defaultTaskAlive = 1; // 初始状态：存在 */
+volatile uint32_t PA1LEDTaskCounter = 0;
+volatile uint32_t PA1LEDTaskelapsed = 0;
+volatile uint32_t PC13TaskCounter = 0;
+volatile uint32_t PC13Taskelapsed = 0;
+/* USER CODE END Variables */
 
 osThreadId_t OLEDTaskHandle;
 const osThreadAttr_t OLEDTask_attributes = {
@@ -55,18 +62,24 @@ const osThreadAttr_t OLEDTask_attributes = {
     .stack_size = 128 * 8,
     .priority = (osPriority_t)osPriorityNormal,
 };
-osThreadId_t UartTaskHandle;
+osThreadId_t PA1LEDTaskHandle;
+const osThreadAttr_t PA1LEDTask_attributes = {
+    .name = "PA1LEDTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityAboveNormal,
+};
+/* osThreadId_t UartTaskHandle;
 const osThreadAttr_t UartTask_attributes = {
     .name = "UartTask",
     .stack_size = 128 * 8,
     .priority = (osPriority_t)osPriorityNormal,
 };
-osThreadId_t ButtonTaskHandle;
+ osThreadId_t ButtonTaskHandle;
 const osThreadAttr_t ButtonTask_attributes = {
     .name = "ButtonTask",
     .stack_size = 128 * 4,
     .priority = (osPriority_t)osPriorityAboveNormal,
-};
+}; */
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -80,18 +93,30 @@ const osThreadAttr_t defaultTask_attributes = {
 /* USER CODE BEGIN FunctionPrototypes */
 void OLEDTask(void *argument) {
   while (1) {
-    OLED_ShowNum(2, 1, HAL_GetTick(), 6);
-    OLED_ShowNum(3, 1, uxTaskGetStackHighWaterMark(OLEDTaskHandle), 3);
-    OLED_ShowNum(4, 1, uxTaskGetStackHighWaterMark(defaultTaskHandle), 3);
-    if (defaultTaskAlive) {
-      OLED_ShowString(1, 1, "Default: Alive");
-    } else {
-      OLED_ShowString(1, 1, "Default: Dead ");
-    }
+    OLED_ShowNum(1, 1, PA1LEDTaskCounter, 3);
+    OLED_ShowNum(1, 5, PC13TaskCounter, 3);
+    OLED_ShowNum(2, 1, PA1LEDTaskelapsed, 6);
+    OLED_ShowNum(3, 1, PC13Taskelapsed, 6);
+    taskYIELD();
     osDelay(500); // 每0.5秒更新一次显示
   }
 }
-void UartTask(void *argument) {
+void PA1LEDTask(void *argument) {
+  uint32_t startTick = osKernelGetTickCount(); // 任务开始时刻
+  uint32_t lastWakeTime = osKernelGetTickCount(); // 上次唤醒时刻
+  uint16_t period = 1000; // 任务周期，单位为毫秒
+  while (1) {
+    HAL_GPIO_TogglePin(GPIOA, LED_Pin);
+    lastWakeTime += period;
+    osDelayUntil(lastWakeTime); // 每1秒切换一次LED状态
+    PA1LEDTaskCounter++;
+    PA1LEDTaskelapsed = osKernelGetTickCount() - startTick;
+    if (PA1LEDTaskCounter >= 100) {
+      osThreadSuspend(PA1LEDTaskHandle);
+    }
+  }
+}
+/* void UartTask(void *argument) {
 
   char buffer[480];
   while (1) {
@@ -100,8 +125,8 @@ void UartTask(void *argument) {
                       HAL_MAX_DELAY);
     osDelay(2000); // 每2秒更新一次显示
   }
-}
-void StartDefaultTask(void *argument);
+} */
+/* void StartDefaultTask(void *argument);
 void ButtonTask(void *argument) {
   while (1) {
     if(HAL_GPIO_ReadPin(KEY_GPIO_Port,  KEY_Pin) == GPIO_PIN_RESET) {
@@ -128,7 +153,7 @@ void ButtonTask(void *argument) {
       osDelay(10); // 空闲时稍微延时，减少CPU占用
     }
   }
-}
+} */
   
 /* USER CODE END FunctionPrototypes */
 
@@ -169,8 +194,9 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
   OLEDTaskHandle=osThreadNew(OLEDTask, NULL, &OLEDTask_attributes);
-  UartTaskHandle = osThreadNew(UartTask, NULL, &UartTask_attributes);
-  ButtonTaskHandle = osThreadNew(ButtonTask, NULL, &ButtonTask_attributes);
+  PA1LEDTaskHandle = osThreadNew(PA1LEDTask, NULL, &PA1LEDTask_attributes);
+/*   UartTaskHandle = osThreadNew(UartTask, NULL, &UartTask_attributes);
+  ButtonTaskHandle = osThreadNew(ButtonTask, NULL, &ButtonTask_attributes); */
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -189,12 +215,17 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-    /* Infinite loop */
+  /* Infinite loop */
+  uint32_t startTick = osKernelGetTickCount();
   for (;;) {
-    HAL_GPIO_TogglePin(GPIOA, LED_Pin);
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    osDelay(500);
+    osDelay(1000);
+    PC13TaskCounter++;
+    PC13Taskelapsed = osKernelGetTickCount() - startTick;
+    if (PC13TaskCounter >= 100) {
+      osThreadSuspend(defaultTaskHandle);
     }
+  }
   /* USER CODE END StartDefaultTask */
 }
 
