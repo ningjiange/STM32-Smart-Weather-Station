@@ -10,8 +10,7 @@
                     (x) ? GPIO_PIN_SET : GPIO_PIN_RESET)
 /*引脚初始化*/
 void OLED_I2C_Init(void) {
-  HAL_GPIO_WritePin(OLED_GND_GPIO_Port, OLED_GND_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(OLED_VCC_GPIO_Port, OLED_VCC_Pin, GPIO_PIN_SET);
+
 
   OLED_W_SCL(1);
   OLED_W_SDA(1);

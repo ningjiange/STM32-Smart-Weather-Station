@@ -1,6 +1,6 @@
 #ifndef __DELAY_H
 #define __DELAY_H
-
+#include<oled_font.h>
 #include <stdint.h>
 #include <stdbool.h>
 

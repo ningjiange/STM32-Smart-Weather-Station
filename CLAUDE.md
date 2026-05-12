@@ -39,3 +39,9 @@ OLED 使用 GPIO 位带模拟 I2C 时序，**不是硬件 I2C 外设**。I2C 从
 - OLED 的 GND 和 VCC 通过 GPIO 供电（PB4 输出低，PB5 输出高），代码启动后需要在 `OLED_I2C_Init()` 中先初始化。
 - `main.c` 中的 `OLED_Init()` 和 `OLED_ShowString()` 调用在 `USER CODE BEGIN/END 2` 区域内。
 - 工程中无 `fix_cmake_user.ps1`，需手动在 `cmake/stm32cubemx/CMakeLists.txt` 的 `MX_Application_Src` 中添加新文件。
+
+## 学习进度记录
+
+- FreeRTOS 初学者，正在学习任务创建和调度
+- 已掌握：osThreadNew 创建任务、osDelay 延时、任务优先级、抢占
+- 正在学：__已经学习完1.1，1.2并且完成了实验1，2_（随时更新）
