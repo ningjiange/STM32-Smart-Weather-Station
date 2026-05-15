@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "cmsis_os2.h"
 #include "stm32f1xx_hal.h"
 #include "tim.h"
 #include "usart.h"
@@ -60,6 +61,17 @@
 
 /* USER CODE BEGIN PV */
 extern osSemaphoreId_t binarySem;
+extern osThreadId_t PA1TaskHandle;
+volatile uint32_t sem_tick = 0;
+volatile uint32_t notif_tick = 0;
+volatile uint32_t sem_response = 0;
+volatile uint32_t notif_response = 0;
+
+void DWT_Init(void) {
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CYCCNT = 0;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+}
 /* USER CODE END PV */
 
 /* Private function prototypes
@@ -109,6 +121,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   OLED_Init();
   HAL_TIM_Base_Start_IT(&htim2);
+  DWT_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -185,7 +198,11 @@ void SystemClock_Config(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   /* USER CODE BEGIN Callback 0 */
   if (htim->Instance == TIM2) {
+    uint32_t tick = DWT->CYCCNT;  // 同一个时间戳
+    sem_tick = tick;
+    notif_tick = tick;
     osSemaphoreRelease(binarySem);
+    osThreadFlagsSet(PA1TaskHandle, 0x01);
   }
 
   /* USER CODE END Callback 0 */
