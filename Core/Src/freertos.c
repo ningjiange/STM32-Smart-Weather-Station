@@ -50,20 +50,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 osMessageQueueId_t myQueue;
-/* USER CODE END Variables */
-
-osThreadId_t OLEDTaskHandle;
-const osThreadAttr_t OLEDTask_attributes = {
-    .name = "OLEDTask",
-    .stack_size = 128 * 8,
-    .priority = (osPriority_t)osPriorityNormal,
-};
- osThreadId_t ButtonTaskHandle;
-const osThreadAttr_t ButtonTask_attributes = {
-    .name = "ButtonTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityAboveNormal,
-};
+osSemaphoreId_t binarySem;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -72,38 +59,44 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-
-/* Private function prototypes -----------------------------------------------*/
-/* USER CODE BEGIN FunctionPrototypes */
+osThreadId_t OLEDTaskHandle;
+const osThreadAttr_t OLEDTask_attributes = {
+    .name = "OLEDTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
+};
+/* osThreadId_t ButtonTaskHandle;
+const osThreadAttr_t ButtonTask_attributes = {
+    .name = "ButtonTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
+}; */
+    /* Private function prototypes
+       -----------------------------------------------*/
+    /* USER CODE BEGIN FunctionPrototypes */
 void OLEDTask(void *argument) {
-  uint8_t receivedState = 0;
+  uint8_t receivedState;
   while (1) {
     osMessageQueueGet(myQueue, &receivedState, NULL, osWaitForever);
-    OLED_ShowNum(1, 1, receivedState, 1);
-    if (receivedState) {
-      OLED_ShowString(2, 1, "Key: ON ");
-    } else {
-      OLED_ShowString(2, 1, "Key: OFF");
-    }
+    OLED_ShowNum(1, 1, receivedState, 3);   
   }
 }
 void StartDefaultTask(void *argument);
 void ButtonTask(void *argument) {
-  uint8_t buttonState = 0; // 0: 未按下，1: 已按下
   while (1) {
     if(HAL_GPIO_ReadPin(KEY_GPIO_Port,  KEY_Pin) == GPIO_PIN_RESET) {
-      osDelay(20); // 防抖延时
+      osDelay(20); //
       if (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) == GPIO_PIN_RESET){
         while (HAL_GPIO_ReadPin(KEY_GPIO_Port, KEY_Pin) ==
-               GPIO_PIN_RESET) // 例如，发送一个信号量或设置一个标志位
+               GPIO_PIN_RESET) // 按键消抖，等待按键释放
         {
           osDelay(10);
         }
-        buttonState = !buttonState; // 切换状态
-        osMessageQueuePut(myQueue, &buttonState, 0, osWaitForever); // 将状态发送到队列
+       
+        
       }
     } else {
-      osDelay(10); // 空闲时稍微延时，减少CPU占用
+      osDelay(10); // 避免CPU占用过高
     }
   }
 } 
@@ -129,7 +122,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
-    /* add semaphores, ... */
+    binarySem = osSemaphoreNew(1, 0, NULL);
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -138,7 +131,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
     
-    myQueue = osMessageQueueNew(10, sizeof(uint8_t), NULL);
+  myQueue = osMessageQueueNew(10, sizeof(uint8_t), NULL);
   
   /* USER CODE END RTOS_QUEUES */
 
@@ -149,14 +142,14 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
   OLEDTaskHandle = osThreadNew(OLEDTask, NULL, &OLEDTask_attributes);
-  ButtonTaskHandle=osThreadNew(ButtonTask, NULL, &ButtonTask_attributes);
+  /* ButtonTaskHandle=osThreadNew(ButtonTask, NULL, &ButtonTask_attributes); */
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
     /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
-}
 
+}
 
 /* USER CODE BEGIN Header_StartDefaultTask */
   /**
@@ -169,9 +162,14 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-  uint32_t startTick = osKernelGetTickCount();
+  uint8_t LEDCounter = 0;
   for (;;) {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    osSemaphoreAcquire(binarySem, osWaitForever);
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    LEDCounter++;
+    osMessageQueuePut(myQueue, &LEDCounter, 0,
+                      osWaitForever); // 将状态发送到消息队列
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */

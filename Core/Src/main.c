@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "stm32f1xx_hal.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -57,10 +59,11 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern osSemaphoreId_t binarySem;
 /* USER CODE END PV */
 
-/* Private function prototypes -----------------------------------------------*/
+/* Private function prototypes
+-----------------------------------------------*/
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
@@ -102,9 +105,10 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
-
+  HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -178,17 +182,18 @@ void SystemClock_Config(void)
   * @param  htim : TIM handle
   * @retval None
   */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
   /* USER CODE BEGIN Callback 0 */
+  if (htim->Instance == TIM2) {
+    osSemaphoreRelease(binarySem);
+  }
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM4)
-  {
+  
+  /* USER CODE BEGIN Callback 1 */
+  if (htim->Instance == TIM4) {
     HAL_IncTick();
   }
-  /* USER CODE BEGIN Callback 1 */
-
   /* USER CODE END Callback 1 */
 }
 
