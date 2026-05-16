@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "cmsis_os2.h"
+#include "stm32f103xb.h"
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
@@ -51,10 +52,9 @@
 /* USER CODE BEGIN Variables */
 osMessageQueueId_t myQueue;
 osSemaphoreId_t binarySem;
-extern volatile uint32_t sem_tick;
-extern volatile uint32_t notif_tick;
-extern volatile uint32_t sem_response;
-extern volatile uint32_t notif_response;
+osTimerId_t Timer01;
+osTimerId_t Timer02;
+volatile uint8_t TimerOutFlag = 0;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -69,12 +69,6 @@ const osThreadAttr_t OLEDTask_attributes = {
     .stack_size = 128 * 4,
     .priority = (osPriority_t)osPriorityNormal,
 };
-osThreadId_t PA1TaskHandle;
-const osThreadAttr_t PA1Task_attributes = {
-    .name = "PA1Task",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityNormal,
-};
 /* osThreadId_t ButtonTaskHandle;
 const osThreadAttr_t ButtonTask_attributes = {
     .name = "ButtonTask",
@@ -85,28 +79,19 @@ const osThreadAttr_t ButtonTask_attributes = {
        -----------------------------------------------*/
     /* USER CODE BEGIN FunctionPrototypes */
 void OLEDTask(void *argument) {
-  uint8_t receivedpc13Counter;
-  uint8_t receivePA1Counter;
   while (1) {
-    osMessageQueueGet(myQueue, &receivedpc13Counter, NULL, osWaitForever);
-    OLED_ShowNum(1, 1, receivedpc13Counter, 3);
-    osMessageQueueGet(myQueue, &receivePA1Counter, NULL, osWaitForever);
-    OLED_ShowNum(1, 5, receivePA1Counter, 3);
-    OLED_ShowNum(2, 1, sem_response, 5);
-    OLED_ShowNum(3, 1, notif_response, 5);
+    if (TimerOutFlag) {
+      OLED_ShowString(1, 1, "Timer02 Timeout!");
+    }
+    osDelay(100);
   }
 }
-void PA1Task(void *argument) {
-  uint8_t PA1Counter = 0;
-  while (1) {
-    osThreadFlagsWait(0x01, osFlagsWaitAny, osWaitForever);
-    notif_response = (DWT->CYCCNT - notif_tick) / 72;  // 转换为微秒
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-    PA1Counter++;
-    osMessageQueuePut(myQueue, &PA1Counter, 0, osWaitForever);
-    osDelay(1000);
-  }
+void Timer01_Callback(void *argument) {
+   HAL_GPIO_TogglePin(LED_GPIO_Port,LED_Pin);
 }
+void Timer02_Callback(void *argument) {
+  TimerOutFlag = 1;
+  }
 /* void ButtonTask(void *argument) {
   while (1) {
     if(HAL_GPIO_ReadPin(KEY_GPIO_Port,  KEY_Pin) == GPIO_PIN_RESET) {
@@ -151,7 +136,10 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
-    /* start timers, add new ones, ... */
+  Timer01 = osTimerNew(Timer01_Callback, osTimerPeriodic, NULL, NULL);
+  osTimerStart(Timer01, 1000); // 1秒后启动定时器
+  Timer02 = osTimerNew(Timer02_Callback, osTimerOnce, NULL, NULL);
+  osTimerStart(Timer02, 3000); // 3秒后启动定时器
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -167,7 +155,7 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
     /* add threads, ... */
   OLEDTaskHandle = osThreadNew(OLEDTask, NULL, &OLEDTask_attributes);
-  PA1TaskHandle = osThreadNew(PA1Task, NULL, &PA1Task_attributes);
+
   /* ButtonTaskHandle=osThreadNew(ButtonTask, NULL, &ButtonTask_attributes); */
   /* USER CODE END RTOS_THREADS */
 
@@ -188,13 +176,8 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-  uint8_t pc13Counter = 0;
   for (;;) {
-    osSemaphoreAcquire(binarySem, osWaitForever);
-    sem_response = (DWT->CYCCNT - sem_tick) / 72;  // 转换为微秒
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-    pc13Counter++;
-    osMessageQueuePut(myQueue, &pc13Counter, 0, osWaitForever);
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */
