@@ -30,6 +30,7 @@
 #include "oled.h"
 #include "string.h"
 #include "usart.h"
+#include <stddef.h>
 #include <stdint.h>
 /* USER CODE END Includes */
 
@@ -69,30 +70,35 @@ const osThreadAttr_t OLEDTask_attributes = {
     .stack_size = 128 * 4,
     .priority = (osPriority_t)osPriorityNormal,
 };
-/* osThreadId_t ButtonTaskHandle;
+osThreadId_t ButtonTaskHandle;
 const osThreadAttr_t ButtonTask_attributes = {
     .name = "ButtonTask",
     .stack_size = 128 * 4,
     .priority = (osPriority_t)osPriorityNormal,
-}; */
-    /* Private function prototypes
-       -----------------------------------------------*/
-    /* USER CODE BEGIN FunctionPrototypes */
+};
+/* Private function prototypes
+-----------------------------------------------*/
+/* USER CODE BEGIN FunctionPrototypes */
 void OLEDTask(void *argument) {
   while (1) {
-    if (TimerOutFlag) {
-      OLED_ShowString(1, 1, "Timer02 Timeout!");
-    }
+    size_t free_heap_size = xPortGetFreeHeapSize();
+    size_t min_ever_free_heap_size = xPortGetMinimumEverFreeHeapSize();
+    size_t itself =uxTaskGetStackHighWaterMark(NULL);
+    OLED_ShowNum(1, 1, free_heap_size, 5);
+    OLED_ShowNum(2, 1, min_ever_free_heap_size, 5);
+    OLED_ShowNum(3, 1, itself, 5);
+    osDelay( 3000);
+    vTaskDelete( ButtonTaskHandle);
     osDelay(100);
   }
 }
-void Timer01_Callback(void *argument) {
+/* void Timer01_Callback(void *argument) {
    HAL_GPIO_TogglePin(LED_GPIO_Port,LED_Pin);
 }
 void Timer02_Callback(void *argument) {
   TimerOutFlag = 1;
-  }
-/* void ButtonTask(void *argument) {
+  } */
+void ButtonTask(void *argument) {
   while (1) {
     if(HAL_GPIO_ReadPin(KEY_GPIO_Port,  KEY_Pin) == GPIO_PIN_RESET) {
       osDelay(20); //
@@ -109,7 +115,7 @@ void Timer02_Callback(void *argument) {
       osDelay(10); // 避免CPU占用过高
     }
   }
-}  */
+} 
   
 /* USER CODE END FunctionPrototypes */
 
@@ -132,19 +138,19 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
-  binarySem = osSemaphoreNew(1, 0, NULL);
+  /* binarySem = osSemaphoreNew(1, 0, NULL); */
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
-  Timer01 = osTimerNew(Timer01_Callback, osTimerPeriodic, NULL, NULL);
+  /* Timer01 = osTimerNew(Timer01_Callback, osTimerPeriodic, NULL, NULL);
   osTimerStart(Timer01, 1000); // 1秒后启动定时器
   Timer02 = osTimerNew(Timer02_Callback, osTimerOnce, NULL, NULL);
-  osTimerStart(Timer02, 3000); // 3秒后启动定时器
+  osTimerStart(Timer02, 3000); // 3秒后启动定时器 */
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
     
-  myQueue = osMessageQueueNew(10, sizeof(uint8_t), NULL);
+  /* myQueue = osMessageQueueNew(10, sizeof(uint8_t), NULL); */
   
   /* USER CODE END RTOS_QUEUES */
 
@@ -156,7 +162,7 @@ void MX_FREERTOS_Init(void) {
     /* add threads, ... */
   OLEDTaskHandle = osThreadNew(OLEDTask, NULL, &OLEDTask_attributes);
 
-  /* ButtonTaskHandle=osThreadNew(ButtonTask, NULL, &ButtonTask_attributes); */
+  ButtonTaskHandle=osThreadNew(ButtonTask, NULL, &ButtonTask_attributes);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
