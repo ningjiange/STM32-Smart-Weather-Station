@@ -19,8 +19,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
-#include "cmsis_os2.h"
-#include "stm32f103xb.h"
 #include "task.h"
 #include "main.h"
 #include "cmsis_os.h"
@@ -32,6 +30,8 @@
 #include "usart.h"
 #include <stddef.h>
 #include <stdint.h>
+#include "sensor.h"
+#include "system_state.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,11 +51,23 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-osMessageQueueId_t myQueue;
+/* osMessageQueueId_t myQueue;
 osSemaphoreId_t binarySem;
 osTimerId_t Timer01;
 osTimerId_t Timer02;
-volatile uint8_t TimerOutFlag = 0;
+volatile uint8_t TimerOutFlag = 0; */
+osThreadId_t OLEDTaskHandle;
+const osThreadAttr_t OLEDTask_attributes = {
+    .name = "OLEDTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityLow,
+};
+osThreadId_t SensorTaskHandle;
+const osThreadAttr_t SensorTask_attributes = {
+    .name = "SensorTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
+};
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -64,32 +76,32 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-osThreadId_t OLEDTaskHandle;
-const osThreadAttr_t OLEDTask_attributes = {
-    .name = "OLEDTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityNormal,
-};
-osThreadId_t ButtonTaskHandle;
-const osThreadAttr_t ButtonTask_attributes = {
-    .name = "ButtonTask",
-    .stack_size = 128 * 4,
-    .priority = (osPriority_t)osPriorityNormal,
-};
-/* Private function prototypes
------------------------------------------------*/
+
+/* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void OLEDTask(void *argument) {
   while (1) {
-    size_t free_heap_size = xPortGetFreeHeapSize();
-    size_t min_ever_free_heap_size = xPortGetMinimumEverFreeHeapSize();
-    size_t itself =uxTaskGetStackHighWaterMark(NULL);
-    OLED_ShowNum(1, 1, free_heap_size, 5);
-    OLED_ShowNum(2, 1, min_ever_free_heap_size, 5);
-    OLED_ShowNum(3, 1, itself, 5);
-    osDelay( 3000);
-    vTaskDelete( ButtonTaskHandle);
-    osDelay(100);
+    OLED_Clear();
+    OLED_ShowString(1, 1, "Temp:");
+    OLED_ShowNum(1, 6, (uint32_t)g_state.temp, 2);
+    OLED_ShowString(2, 1, "Humi:");
+    OLED_ShowNum(2, 6, (uint32_t)g_state.humi, 2);
+    OLED_ShowString(3, 1, "Light:");
+    OLED_ShowNum(3, 6, g_state.light_raw, 4);
+    OLED_ShowString(4, 1, "P:");
+    OLED_ShowNum(4, 3, (int16_t)g_state.pitch, 3);
+    OLED_ShowString(4, 7, "R:");
+    OLED_ShowNum(4, 9, (int16_t)g_state.roll, 3);
+
+    osDelay(1000);
+  }
+}
+void SensorTask(void *argument) {
+  while (1) {
+    LightSensor_Read();
+    DHT11_Read();
+    MPU6050_Read();
+    osDelay(1000); // 每秒读取一次
   }
 }
 /* void Timer01_Callback(void *argument) {
@@ -98,7 +110,7 @@ void OLEDTask(void *argument) {
 void Timer02_Callback(void *argument) {
   TimerOutFlag = 1;
   } */
-void ButtonTask(void *argument) {
+/* void ButtonTask(void *argument) {
   while (1) {
     if(HAL_GPIO_ReadPin(KEY_GPIO_Port,  KEY_Pin) == GPIO_PIN_RESET) {
       osDelay(20); //
@@ -116,7 +128,7 @@ void ButtonTask(void *argument) {
     }
   }
 } 
-  
+   */
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -159,10 +171,10 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
-    /* add threads, ... */
   OLEDTaskHandle = osThreadNew(OLEDTask, NULL, &OLEDTask_attributes);
+  SensorTaskHandle = osThreadNew(SensorTask, NULL, &SensorTask_attributes);
 
-  ButtonTaskHandle=osThreadNew(ButtonTask, NULL, &ButtonTask_attributes);
+ /*  ButtonTaskHandle=osThreadNew(ButtonTask, NULL, &ButtonTask_attributes); */
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -183,7 +195,7 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for (;;) {
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
     osDelay(1000);
   }
   /* USER CODE END StartDefaultTask */

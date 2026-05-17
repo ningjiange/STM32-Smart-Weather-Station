@@ -1,15 +1,17 @@
 #include "delay.h"
-#include "main.h"
+#include "stm32f1xx.h"
 
+void delay_init(void) {
+    /* 使能 DWT 调试模块 */
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    /* 清零周期计数器 */
+    DWT->CYCCNT = 0;
+    /* 使能周期计数器 */
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+}
 
-// 非阻塞延时函数，使用 HAL_GetTick() 获取系统时间
-uint8_t NonBlocking_Delay(uint32_t *last_time, uint32_t delay_ms) {
-  uint32_t now = HAL_GetTick();
-
-  if (now - *last_time >= delay_ms) {
-    *last_time = now;
-    return 1; // 时间到了
-  }
-
-  return 0; // 时间还没到
+void delay_us(uint32_t us) {
+    uint32_t start = DWT->CYCCNT;
+    uint32_t ticks = us * (SystemCoreClock / 1000000);  /* 72MHz → 72 ticks/us */
+    while ((DWT->CYCCNT - start) < ticks);
 }

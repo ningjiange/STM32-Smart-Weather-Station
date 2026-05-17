@@ -57,14 +57,43 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define LED_Pin GPIO_PIN_1
-#define LED_GPIO_Port GPIOA
-#define KEY_Pin GPIO_PIN_1
-#define KEY_GPIO_Port GPIOB
+#define Red_LED_Pin GPIO_PIN_13
+#define Red_LED_GPIO_Port GPIOC
+#define DHT11_Pin GPIO_PIN_0
+#define DHT11_GPIO_Port GPIOA
+#define LightSensorIN_Pin GPIO_PIN_1
+#define LightSensorIN_GPIO_Port GPIOA
+#define TB6612PWM_Pin GPIO_PIN_6
+#define TB6612PWM_GPIO_Port GPIOA
+#define AIN1_Pin GPIO_PIN_7
+#define AIN1_GPIO_Port GPIOA
+#define EncoderA_Pin GPIO_PIN_0
+#define EncoderA_GPIO_Port GPIOB
+#define EncoderA_EXTI_IRQn EXTI0_IRQn
+#define EncoderB_Pin GPIO_PIN_1
+#define EncoderB_GPIO_Port GPIOB
+#define EncoderB_EXTI_IRQn EXTI1_IRQn
+#define EncoderC_Pin GPIO_PIN_2
+#define EncoderC_GPIO_Port GPIOB
+#define EncoderC_EXTI_IRQn EXTI2_IRQn
+#define KEY1_Pin GPIO_PIN_12
+#define KEY1_GPIO_Port GPIOB
+#define KEY2_Pin GPIO_PIN_13
+#define KEY2_GPIO_Port GPIOB
+#define Buzzer_Pin GPIO_PIN_14
+#define Buzzer_GPIO_Port GPIOB
+#define AIN2_Pin GPIO_PIN_8
+#define AIN2_GPIO_Port GPIOA
+#define SG_90PWM_Pin GPIO_PIN_11
+#define SG_90PWM_GPIO_Port GPIOA
 #define OLED_SCL_Pin GPIO_PIN_6
 #define OLED_SCL_GPIO_Port GPIOB
 #define OLED_SDA_Pin GPIO_PIN_7
 #define OLED_SDA_GPIO_Port GPIOB
+#define Green_LED_Pin GPIO_PIN_8
+#define Green_LED_GPIO_Port GPIOB
+#define Yellow_LED_Pin GPIO_PIN_9
+#define Yellow_LED_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
