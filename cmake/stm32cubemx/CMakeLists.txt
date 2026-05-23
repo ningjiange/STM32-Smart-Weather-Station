@@ -38,10 +38,16 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/syscalls.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32f103xb.s
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/BT_WIFI.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/Encoder.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/delay.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/motor.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/oled.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/sensor.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/system_state.c)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/system_state.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/w25q64.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/logger.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../User/Src/alarm.c)
 
 # STM32 HAL/LL Drivers
 set(STM32_Drivers_Src

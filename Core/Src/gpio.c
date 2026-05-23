@@ -51,7 +51,10 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(Red_LED_GPIO_Port, Red_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(DHT11_GPIO_Port, DHT11_Pin, GPIO_PIN_SET);
@@ -63,7 +66,15 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, Buzzer_Pin|OLED_SCL_Pin|OLED_SDA_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, Green_LED_Pin|Yellow_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, Green_LED_Pin, GPIO_PIN_SET);   /* 绿灯初始亮(active-high) */
+  HAL_GPIO_WritePin(GPIOB, Yellow_LED_Pin, GPIO_PIN_RESET); /* 黄灯初始灭 */
+
+  /*Configure GPIO pin : PA15 (W25Q64 CS) */
+  GPIO_InitStruct.Pin = GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : Red_LED_Pin */
   GPIO_InitStruct.Pin = Red_LED_Pin;
@@ -86,14 +97,14 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : EncoderA_Pin EncoderB_Pin EncoderC_Pin */
-  GPIO_InitStruct.Pin = EncoderA_Pin|EncoderB_Pin|EncoderC_Pin;
+  /*Configure GPIO pin : EncoderA_Pin */
+  GPIO_InitStruct.Pin = EncoderA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(EncoderA_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : KEY1_Pin KEY2_Pin */
-  GPIO_InitStruct.Pin = KEY1_Pin|KEY2_Pin;
+  /*Configure GPIO pins : EncoderB_Pin KEY1_Pin KEY2_Pin EncoderC_Pin */
+  GPIO_InitStruct.Pin = EncoderB_Pin|KEY1_Pin|KEY2_Pin|EncoderC_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -113,14 +124,8 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 6, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI1_IRQn);
-
-  HAL_NVIC_SetPriority(EXTI2_IRQn, 5, 0);
-  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
 }
 

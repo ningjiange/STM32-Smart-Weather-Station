@@ -161,9 +161,6 @@ void MPU6050_Read(void) {
   int16_t ax = (buf[0] << 8) | buf[1];
   int16_t ay = (buf[2] << 8) | buf[3];
   int16_t az = (buf[4] << 8) | buf[5];
-  int16_t gx = (buf[8] << 8) | buf[9];
-  int16_t gy = (buf[10] << 8) | buf[11];
-  int16_t gz = (buf[12] << 8) | buf[13];
   
   // 简单的姿态估计（不使用滤波器）
   g_state.pitch = atan2f(-ax, sqrtf(ay * ay + az * az)) * (180.0f / M_PI);

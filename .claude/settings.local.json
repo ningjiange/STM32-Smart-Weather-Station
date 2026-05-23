@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python \"D:/STM32CubeFile/freerots学习/模块化编程脚本助手/fix_all.py\")",
       "Bash(python -c ' *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(cmake --build build/Debug)",
+      "Bash(cmake --build build/Debug --clean-first)",
+      "Bash(cmake --preset Debug)"
     ]
   }
 }

@@ -79,7 +79,7 @@ void MX_FREERTOS_Init(void);
 
 /**
   * @brief  The application entry point.
-  * @retval int
+  * @retval int 
   */
 int main(void)
 {
@@ -106,17 +106,21 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  __HAL_AFIO_REMAP_SWJ_NOJTAG();  /* JTAG必须在SPI1之前释放PB3/PB4/PB5 */
+
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   MX_ADC1_Init();
   MX_I2C2_Init();
-  MX_SPI1_Init();
+  MX_SPI1_Init();  /* 现在PB3/PB4/PB5已释放，SPI能正常配置 */
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_USART2_UART_Init();
-/* USER CODE BEGIN 2 */
+  /* USER CODE BEGIN 2 */
   OLED_Init();
   DHT11_TIM_Init();
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4); // 舵机
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // 风扇
   /* USER CODE END 2 */
 
   /* Init scheduler */
