@@ -34,3 +34,14 @@ Listings/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Claude AI
+.claude/
+
+# Personal scripts
+模块化编程脚本助手/
+
+# Learning notes (not part of the project)
+FreeRTOS学习路线.md
+FreeRTOS接口汇总*.md
+智能桌面气象站_开发计划.md
