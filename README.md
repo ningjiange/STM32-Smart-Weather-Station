@@ -55,6 +55,40 @@
 | `STATUS` | 查询当前状态 |
 | `LOG` | 导出 Flash 日志 |
 
+## 项目结构
+
+```
+├── Core/
+│   ├── Src/main.c                  — 系统初始化、外设配置、调度器启动
+│   ├── Src/freertos.c              — FreeRTOS 任务定义与创建
+│   ├── Src/gpio.c                  — GPIO 引脚初始化
+│   ├── Src/tim.c                   — 定时器 PWM 配置 (风扇/舵机)
+│   ├── Src/usart.c                 — UART1/UART2 串口配置
+│   ├── Src/adc.c                   — ADC1 光敏采集配置
+│   ├── Src/i2c.c                   — I2C2 MPU6050 通信配置
+│   ├── Src/spi.c                   — SPI1 W25Q64 Flash 配置
+│   └── Inc/FreeRTOSConfig.h        — FreeRTOS 配置 (堆12KB, 栈溢出检测)
+├── User/
+│   ├── Src/sensor.c                — DHT11 温湿度 + MPU6050 姿态 + 光敏驱动
+│   ├── Src/motor.c                 — TB6612 风扇 PWM 调速 + SG90 舵机角度控制
+│   ├── Src/BT_WIFI.c              — HC-06 蓝牙指令解析 + ESP8266 AT指令驱动
+│   ├── Src/alarm.c                 — 多级报警 (温度/倾斜) + 蜂鸣器脉冲
+│   ├── Src/logger.c                — W25Q64 Flash 日志 (10字节/条, ~409条)
+│   ├── Src/Encoder.c               — 旋转编码器 + 按键消抖
+│   ├── Src/oled.c                  — SSD1306 OLED 软件 I2C 驱动
+│   ├── Src/w25q64.c                — SPI Flash 底层读写驱动
+│   ├── Src/system_state.c          — 全局状态结构体 g_state 初始化
+│   ├── Src/delay.c                 — 微秒/毫秒延时
+│   └── Inc/                        — 对应头文件
+├── Drivers/                        — STM32 HAL 驱动库 (自动生成, 勿改)
+├── Middlewares/Third_Party/FreeRTOS — FreeRTOS 内核源码
+├── CMakeLists.txt                  — CMake 构建配置
+├── CMakePresets.json               — 编译预设 (Debug/Release)
+├── freertos学习.ioc                — CubeMX 工程配置
+├── 项目技术文档.md                  — 详细技术文档
+└── CLAUDE.md                       — AI 辅助开发指引
+```
+
 ## 项目难点与解决方案
 
 | 难点 | 解决方案 |
