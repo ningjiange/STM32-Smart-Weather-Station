@@ -85,8 +85,7 @@
 ├── CMakeLists.txt                  — CMake 构建配置
 ├── CMakePresets.json               — 编译预设 (Debug/Release)
 ├── freertos学习.ioc                — CubeMX 工程配置
-├── 项目技术文档.md                  — 详细技术文档
-└── CLAUDE.md                       — AI 辅助开发指引
+└── 项目技术文档.md                  — 详细技术文档
 ```
 
 ## 项目难点与解决方案
