@@ -98,6 +98,23 @@
 | Flash 日志环形存储 | 设计环形缓冲区，自动覆盖旧记录，支持蓝牙导出 |
 | FreeRTOS 堆内存不足 | 通过分析 TCB + 栈开销，精确计算堆大小为 12KB |
 
+## 快速开始
+
+### 编译
+
+```bash
+cmake --preset Debug
+cmake --build build/Debug
+```
+
+### 烧录
+
+通过 ST-Link 或串口烧录 `build/Debug/oled.bin` 到 STM32F103C8T6。
+
+### 调试
+
+连接 HC-06 蓝牙模块，手机打开蓝牙串口 App，发送 `STATUS` 验证系统运行。
+
 ## License
 
 MIT
