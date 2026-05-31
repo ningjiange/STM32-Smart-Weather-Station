@@ -37,6 +37,13 @@ Thumbs.db
 
 # Claude AI
 .claude/
+CLAUDE.md
+
+# Clangd
+.clangd
+
+# CubeMX internal
+.mxproject
 
 # Personal scripts
 模块化编程脚本助手/
